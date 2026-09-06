@@ -13,5 +13,5 @@ variable "project_name" {
 variable "node_instance_type" {
   description = "EC2 instance type for EKS managed worker nodes"
   type        = string
-  default     = "t3.medium"
+  default     = "t3.micro"
 }

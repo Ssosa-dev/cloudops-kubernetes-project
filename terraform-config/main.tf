@@ -133,7 +133,7 @@ resource "aws_eks_node_group" "main" {
 
   lifecycle {
     precondition {
-      condition     = contains(["t3.small", "t3.medium", "m5.large"], var.node_instance_type)
+      condition     = contains(["t3.micro", "t3.small", "m5.large"], var.node_instance_type)
       error_message = "Selected instance type must match approved cost-effective or general tiers."
     }
   }
