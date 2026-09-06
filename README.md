@@ -28,7 +28,7 @@ The service runs a lightweight Python FastAPI application deployed to an AWS EKS
 
 ```
 ### Proof 1: EKS Infrastructure Provisioning
-![Proof 1](screenshots/terraform-eks-provisioned.png)
+![Proof 1](screenshots/terraform-eks-provisioned.jpg)
 
 ### Proof 2: Kubernetes Workloads & LoadBalancer Service
 ![Proof 2](screenshots/k8s-running-pods-and-service.png)
