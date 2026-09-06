@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: api
-        image: spiderboss06/cloudops-api:latest
+        image: ssosa-dev/cloudops-api:latest
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8000
