@@ -52,7 +52,7 @@ jobs:
 
       - name: Deploy updated image to EKS
         run: |
-          sed -i "s|image: cloudops-k8s-api:latest|image: ${{ steps.build-image.outputs.image }}|g" k8s/deployment.yaml
-          kubectl apply -f k8s/deployment.yaml
-          kubectl apply -f k8s/service.yaml
-          kubectl rollout status deployment/cloudops-api --timeout=180s
+          IMAGE_URI="${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}"
+          sed -i "s|image: cloudops-k8s-api:latest|image: ${IMAGE_URI}|g" k8s/deployment.yaml
+          kubectl apply -f k8s/
+          kubectl rollout status deployment/cloudops-api --timeout=120s
