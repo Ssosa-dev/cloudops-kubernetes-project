@@ -75,7 +75,8 @@ jobs:
 
       - name: Run Trivy container image vulnerability scan
         run: |
-          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:latest image \
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v "$PWD:/workspace" aquasec/trivy:latest image \
+            --ignorefile /workspace/.trivyignore \
             --exit-code 1 \
             --ignore-unfixed \
             --severity CRITICAL,HIGH \
