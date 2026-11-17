@@ -59,9 +59,9 @@ jobs:
             --region ${{ env.AWS_REGION }} \
             --name ${{ env.EKS_CLUSTER_NAME }}
 
-      - name: Deploy updated image to EKS
-        run: |
-          kubectl apply -f k8s/deployment.yaml
-          kubectl apply -f k8s/service.yaml
-          kubectl set image deployment/cloudops-api api=${{ steps.build-image.outputs.image }}
-          kubectl rollout status deployment/cloudops-api --timeout=180s
+            - name: Deploy updated image to EKS
+            run: |
+              sed -i "s|image: cloudops-k8s-api:latest|image: ${{ steps.build-image.outputs.image }}|g" k8s/deployment.yaml
+              kubectl apply -f k8s/deployment.yaml
+              kubectl apply -f k8s/service.yaml
+              kubectl rollout status deployment/cloudops-api --timeout=180s
