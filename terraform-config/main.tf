@@ -144,3 +144,103 @@ resource "aws_eks_node_group" "main" {
     aws_iam_role_policy_attachment.nodes_registry,
   ]
 }
+
+# 5. Amazon ECR Repository
+resource "aws_ecr_repository" "app" {
+  name                 = "${var.project_name}-api"
+  image_tag_mutability = "MUTABLE"
+  force_delete         = true
+
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+}
+
+# 6. GitHub Actions OIDC Provider & IAM Role
+data "aws_caller_identity" "current" {}
+
+resource "aws_iam_openid_connect_provider" "github" {
+  url             = "https://token.actions.githubusercontent.com"
+  client_id_list  = ["sts.amazonaws.com"]
+  thumbprint_list = ["6938fd4d98bab03faadb97b34396831e3780aea1", "1c58a3a8518e8759bf075b76b750d4f2df264fcd"]
+}
+
+resource "aws_iam_role" "github_actions" {
+  name = "${var.project_name}-github-actions-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          Federated = aws_iam_openid_connect_provider.github.arn
+        }
+        Action = "sts:AssumeRoleWithWebIdentity"
+        Condition = {
+          StringEquals = {
+            "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
+          }
+          StringLike = {
+            "token.actions.githubusercontent.com:sub" = "repo:Ssosa-dev/cloudops-kubernetes-project:*"
+          }
+        }
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy" "github_actions_policy" {
+  name = "${var.project_name}-github-actions-policy"
+  role = aws_iam_role.github_actions.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "ecr:GetAuthorizationToken"
+        ]
+        Resource = "*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "ecr:BatchCheckLayerAvailability",
+          "ecr:GetDownloadUrlForLayer",
+          "ecr:BatchGetImage",
+          "ecr:PutImage",
+          "ecr:InitiateLayerUpload",
+          "ecr:UploadLayerPart",
+          "ecr:CompleteLayerUpload"
+        ]
+        Resource = aws_ecr_repository.app.arn
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "eks:DescribeCluster"
+        ]
+        Resource = aws_eks_cluster.main.arn
+      }
+    ]
+  })
+}
+
+# 7. Grant GitHub Actions IAM Role Kubernetes Admin Access via EKS Access Entry
+resource "aws_eks_access_entry" "github_actions" {
+  cluster_name  = aws_eks_cluster.main.name
+  principal_arn = aws_iam_role.github_actions.arn
+  type          = "STANDARD"
+}
+
+resource "aws_eks_access_policy_association" "github_actions_admin" {
+  cluster_name  = aws_eks_cluster.main.name
+  policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+  principal_arn = aws_iam_role.github_actions.arn
+
+  access_scope {
+    type = "cluster"
+  }
+}
