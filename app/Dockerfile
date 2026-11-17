@@ -2,10 +2,14 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-RUN addgroup --system appgroup && adduser --system --ingroup appgroup appuser
+RUN apt-get update && apt-get upgrade -y --no-install-recommends && rm -rf /var/lib/apt/lists/* \
+    && addgroup --system --gid 1000 appgroup \
+    && adduser --system --uid 1000 --ingroup appgroup appuser
 
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --upgrade pip \
+    && pip install --no-cache-dir -r requirements.txt \
+    && pip uninstall -y setuptools
 
 COPY . .
 RUN chown -R appuser:appgroup /app
