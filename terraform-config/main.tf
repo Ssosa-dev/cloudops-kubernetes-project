@@ -153,7 +153,7 @@ resource "aws_eks_node_group" "main" {
 # 5. Amazon ECR Repository
 resource "aws_ecr_repository" "app" {
   name                 = "${var.project_name}-api"
-  image_tag_mutability = "MUTABLE"
+  image_tag_mutability = "IMMUTABLE"
   force_delete         = true
 
   image_scanning_configuration {
