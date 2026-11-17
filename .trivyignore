@@ -1,0 +1,11 @@
+# Ephemeral portfolio cluster FinOps waivers (cluster is destroyed immediately post-verification)
+# AWS-0039: Skip dedicated KMS CMK ($1/mo) for short-lived demo EKS secrets
+AVD-AWS-0039
+# AWS-0040 & AWS-0041: Public EKS API endpoint required for GitHub-hosted Actions runners without a $32/mo NAT Gateway/bastion
+AVD-AWS-0040
+AVD-AWS-0041
+# AWS-0164: Public IPs on worker nodes eliminate NAT Gateway hourly/data-processing fees ($32+/mo)
+AVD-AWS-0164
+
+# Base image SBOM false-positive: setuptools is upgraded to 84.2.1 in site-packages, but upstream python:3.11-slim SBOM metadata still lists 70.3.0
+CVE-2025-47273
