@@ -114,6 +114,11 @@ resource "aws_eks_cluster" "main" {
     subnet_ids = aws_subnet.public[*].id
   }
 
+  access_config {
+    authentication_mode                         = "API_AND_CONFIG_MAP"
+    bootstrap_cluster_creator_admin_permissions = true
+  }
+
   depends_on = [aws_iam_role_policy_attachment.cluster_policy]
 }
 
@@ -243,4 +248,6 @@ resource "aws_eks_access_policy_association" "github_actions_admin" {
   access_scope {
     type = "cluster"
   }
+
+  depends_on = [aws_eks_access_entry.github_actions]
 }

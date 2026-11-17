@@ -10,4 +10,4 @@ def test_read_root():
     data = response.json()
     assert data["status"] == "healthy"
     assert data["message"] == "Hello World"
-    assert data["version"] == "1.0.0"
+    assert data["version"] == "1.1.0"
