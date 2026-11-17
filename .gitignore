@@ -3,3 +3,5 @@
 terraform-config/.terraform/
 terraform-config/*.tfstate*
 terraform-config/.terraform.lock.hcl
+
+.venv/
