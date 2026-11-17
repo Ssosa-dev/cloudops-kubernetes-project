@@ -1,19 +1,15 @@
 name: CI - Quality & Validation Gates
 
 on:
-  push:
-    branches: [ main ]
   pull_request:
+    branches: [ main ]
+  push:
     branches: [ main ]
 
 jobs:
-  python-test-and-lint:
+  python-ci:
     name: Python Lint & Pytest
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./app
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -21,42 +17,69 @@ jobs:
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
-          cache: 'pip'
-          cache-dependency-path: app/requirements.txt
+          python-version: "3.11"
+          cache: "pip"
+          cache-dependency-path: "app/requirements.txt"
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install -r app/requirements.txt
 
-      - name: Lint with Ruff
-        run: ruff check .
+      - name: Run Ruff linter
+        run: ruff check app/
 
-      - name: Run unit tests with Pytest
-        run: pytest -v
+      - name: Run Pytest unit tests
+        run: pytest app/ -v
 
-  terraform-validate:
+  terraform-ci:
     name: Terraform Format & Validate
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./terraform-config
-
+        working-directory: terraform-config
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v4
+        uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: "1.9.5"
 
       - name: Terraform Format Check
         run: terraform fmt -check -recursive
 
-      - name: Terraform Init (No Backend)
+      - name: Terraform Init (Backend Disabled)
         run: terraform init -backend=false
 
       - name: Terraform Validate
         run: terraform validate
+
+  security-scan:
+    name: Trivy IaC & Container Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run Trivy IaC misconfiguration scan (Terraform & K8s)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: 'config'
+          scan-ref: '.'
+          format: 'table'
+          exit-code: '1'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Build Docker image for vulnerability scan
+        run: docker build -t cloudops-k8s-api:ci-scan ./app
+
+      - name: Run Trivy container image vulnerability scan
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: 'cloudops-k8s-api:ci-scan'
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          severity: 'CRITICAL,HIGH'
