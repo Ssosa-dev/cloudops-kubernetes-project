@@ -53,15 +53,12 @@ jobs:
             ./app
           echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
-      - name: Update kubeconfig for EKS
+          - name: Update kubeconfig for EKS
+          run: aws eks update-kubeconfig --region ${{ env.AWS_REGION }} --name ${{ env.EKS_CLUSTER_NAME }}
+  
+      - name: Deploy updated image to EKS
         run: |
-          aws eks update-kubeconfig \
-            --region ${{ env.AWS_REGION }} \
-            --name ${{ env.EKS_CLUSTER_NAME }}
-
-            - name: Deploy updated image to EKS
-            run: |
-              sed -i "s|image: cloudops-k8s-api:latest|image: ${{ steps.build-image.outputs.image }}|g" k8s/deployment.yaml
-              kubectl apply -f k8s/deployment.yaml
-              kubectl apply -f k8s/service.yaml
-              kubectl rollout status deployment/cloudops-api --timeout=180s
+          sed -i "s|image: cloudops-k8s-api:latest|image: ${{ steps.build-image.outputs.image }}|g" k8s/deployment.yaml
+          kubectl apply -f k8s/deployment.yaml
+          kubectl apply -f k8s/service.yaml
+          kubectl rollout status deployment/cloudops-api --timeout=180s
