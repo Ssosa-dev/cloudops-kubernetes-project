@@ -4,6 +4,7 @@ WORKDIR /app
 
 RUN apt-get update && apt-get upgrade -y --no-install-recommends && rm -rf /var/lib/apt/lists/* \
     && rm -rf /usr/local/lib/python3.11/ensurepip/_bundled/setuptools* \
+    && rm -rf /usr/local/lib/python3.11/site-packages/setuptools-70.* \
     && addgroup --system --gid 1000 appgroup \
     && adduser --system --uid 1000 --ingroup appgroup appuser
 
